@@ -30,6 +30,7 @@ class PathConfig:
     dataset_root: str = config("DATASET_ROOT", default="./dataset_data")
 
     checkpoint_dir: str = config("CHECKPOINT_DIR", default="./checkpoints")
+    logs_dir: str = config("CHECKPOINT_DIR", default="./checkpoints")
     mlflow_tracking_uri: str = config("MLFLOW_TRACKING_URI", default="file:./mlruns")
 
     def __post_init__(self):

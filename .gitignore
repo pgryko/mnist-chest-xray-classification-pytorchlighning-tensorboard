@@ -26,6 +26,9 @@ mlartifacts/**/*.json
 !mlartifacts/**/*.bin
 !mlartifacts/**/*.onnx
 
+src/training/checkpoints/
+src/training/logs/
+
 # Python
 __pycache__/
 *.py[cod]

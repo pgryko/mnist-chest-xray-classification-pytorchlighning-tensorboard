@@ -8,8 +8,7 @@ from medmnist import ChestMNIST
 from numpy.typing import NDArray
 from PIL.Image import Image
 from torch.utils.data import DataLoader
-
-from src.configs.config import PathConfig, TrainingConfig
+import pytorch_lightning as pl
 
 
 class ChestXRayTransforms:
@@ -53,21 +52,20 @@ class ChestXRayTransforms:
         return self.transform(image=np.array(img))["image"]
 
 
-class ChestDataModule:
-    def __init__(self, config: TrainingConfig, paths: PathConfig):
+class ChestDataModule(pl.LightningDataModule):
+    def __init__(self, config, paths):
+        super().__init__()
         self.config = config
         self.paths = paths
+        self.train_transforms = ChestXRayTransforms(is_training=True)
+        self.val_transforms = ChestXRayTransforms(is_training=False)
 
+    def setup(self, stage=None):
         self.train_dataset = ChestMNIST(
             split="train",
             root=self.paths.dataset_root,
             download=True,
-            transform=ChestXRayTransforms(
-                is_training=True,
-                rotate_limit=self.config.rotate_limit,
-                brightness=self.config.brightness,
-                contrast=self.config.contrast,
-            ),
+            transform=self.train_transforms,
             size=64,
         )
 
@@ -75,7 +73,7 @@ class ChestDataModule:
             split="val",
             root=self.paths.dataset_root,
             download=True,
-            transform=ChestXRayTransforms(is_training=False),
+            transform=self.val_transforms,
             size=64,
         )
 
@@ -83,7 +81,7 @@ class ChestDataModule:
             split="test",
             root=self.paths.dataset_root,
             download=True,
-            transform=ChestXRayTransforms(is_training=False),
+            transform=self.val_transforms,
             size=64,
         )
 
