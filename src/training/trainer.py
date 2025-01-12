@@ -6,6 +6,7 @@ import torch
 import structlog
 
 from src.callbacks.confusion_matrix import ConfusionMatrixLogger
+from src.interpretability.evaluation import MetricsVisualizationCallback
 from src.models.chestnets import ChestNetS
 from src.models.lightning_module import ChestXRayModule
 from src.data.datamodule import ChestDataModule
@@ -40,6 +41,9 @@ def main():
         else "cuda" if torch.cuda.is_available() else "cpu"
     )
 
+    if device.type == "cuda":
+        torch.set_float32_matmul_precision("high")
+
     logger.info("Using device", device=device)
 
     # DataModule
@@ -73,6 +77,7 @@ def main():
     )
 
     confusion_matrix_logger = ConfusionMatrixLogger()
+    metrics_callback = MetricsVisualizationCallback()
 
     # Trainer
     trainer = pl.Trainer(
@@ -80,9 +85,15 @@ def main():
         accelerator="auto",
         devices=1,
         logger=tb_logger,
-        callbacks=[checkpoint_callback, early_stopping, confusion_matrix_logger],
+        callbacks=[
+            checkpoint_callback,
+            early_stopping,
+            metrics_callback,
+            confusion_matrix_logger,
+        ],
         log_every_n_steps=10,
         deterministic=True,
+        # precision=16,  # Use mixed precision training
     )
 
     # Train
